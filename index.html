@@ -467,6 +467,35 @@
     opacity: 0.5;
   }
 
+  .ulasan {
+    margin-top: 28px;
+    display: grid;
+    gap: 8px;
+  }
+  .ulasan label {
+    font-family: var(--font-pixel);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+  }
+  .ulasan .opt { color: var(--muted); font-family: var(--font-term); font-size: 18px; letter-spacing: 0; }
+  .ulasan textarea {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 64px;
+    resize: vertical;
+    font-family: var(--font-term);
+    font-size: 21px;
+    line-height: 1.15;
+    color: var(--ink);
+    background: var(--bg);
+    border: 4px solid var(--edge);
+    border-radius: 0;
+    padding: 10px 12px;
+    outline: none;
+  }
+  .ulasan textarea::placeholder { color: var(--muted); }
+  .ulasan textarea:focus-visible { border-color: var(--accent); box-shadow: 4px 4px 0 var(--accent); }
+
   .actions {
     margin-top: 32px;
     padding-top: 20px;
@@ -673,6 +702,7 @@
   }
   th.l, td.l { text-align: left; }
   .rank-mode .part { display: none; }
+  td.ulasan-col { white-space: normal; min-width: 12em; max-width: 22em; font-size: 19px; line-height: 1.1; }
   th.del-col, td.del-col { text-align: center; width: 1%; padding-inline: 6px; }
   .del-btn {
     background: none;
@@ -730,7 +760,7 @@
 <main class="panel">
   <div class="row">
     <label for="user-id">ID</label>
-    <input id="user-id" type="text" autocomplete="off" spellcheck="false" placeholder="Name/ID/etc...">
+    <input id="user-id" type="text" autocomplete="off" spellcheck="false" placeholder="Nama/ID/dsb...">
   </div>
 
   <section class="cols">
@@ -772,6 +802,11 @@
     </div>
   </section>
 
+  <div class="ulasan">
+    <label for="ulasan">Ulasan <span class="opt">(pilihan)</span></label>
+    <textarea id="ulasan" rows="2" maxlength="500" placeholder="Catatan berkenaan persembahan peserta..."></textarea>
+  </div>
+
   <footer class="actions">
     <p class="status" id="status" aria-live="polite"></p>
     <div class="btn-row">
@@ -788,8 +823,8 @@
       <button class="big-btn btn-no btn-bang" type="button" id="clear-btn" aria-label="Padam semua data" title="Padam semua data">!</button>
       <div class="confirm" id="clear-confirm" hidden>
         <span class="confirm-q" id="clear-q">Padam semua data?</span>
-        <button class="big-btn btn-alt" type="button" id="clear-no">No</button>
-        <button class="big-btn btn-no" type="button" id="clear-yes">Yes</button>
+        <button class="big-btn btn-alt" type="button" id="clear-no">Tak</button>
+        <button class="big-btn btn-no" type="button" id="clear-yes">Ya</button>
       </div>
     </div>
     <div class="install-row" id="install-row">
@@ -819,7 +854,7 @@
       <h2 id="tutorial-title">Tutorial</h2>
       <button class="big-btn btn-no" type="button" id="tutorial-close" aria-label="Close">X</button>
     </header>
-    <p class="tutorial-count" id="tutorial-count">12 langkah</p>
+    <p class="tutorial-count" id="tutorial-count">13 langkah</p>
     <div class="tutorial-scroll">
     <div class="tutorial-body" id="tutorial-body">
       <ol class="tutorial-steps">
@@ -832,6 +867,7 @@
         <li>Rujuk <span class="chip">List</span> untuk senarai peserta yang telah direkodkan. Markah bagi setiap kategori pemarkahan juga disertakan.</li>
         <li>Rujuk <span class="chip">Rank</span> untuk senarai peserta mengikut susunan markah dari yang tertinggi. Markah yang dipaparkan ialah markah total, yang telah dikira secara automatik.</li>
         <li>Boleh muat turun rekod (senarai peserta atau ranking) dalam bentuk excel (.csv) atau imej (.png). Cuma tekan butang <span class="chip">🖨️</span> pada <span class="chip">List</span> atau <span class="chip">Rank</span>, dan ikut arahan selanjutnya.</li>
+        <li>Ruangan <span class="chip">Ulasan</span> adalah pilihan. Anda boleh menulis catatan tentang peserta sebelum menekan <span class="chip chip-blue">Submit</span>. Ulasan dipaparkan dalam <span class="chip">List</span> dan disertakan dalam fail .csv.</li>
         <li>Untuk memadamkan data peserta tertentu, tekan <span class="chip">List</span>, kemudian tekan tanda <span class="chip">❌</span> pada hujung maklumat peserta tersebut. Datanya juga akan terpadam dari senarai <span class="chip">Rank</span>.</li>
         <li>Untuk memadamkan semua data, tekan butang merah <span class="chip chip-red">!</span> di bahagian kiri bawah borang ini. Data yang telah dipadam tidak akan dapat dikembalikan.</li>
         <li>Tekan butang <span class="chip chip-blue">⬇️</span> di kanan bawah borang untuk memasang borang ini sebagai aplikasi pada peranti anda. Selepas dipasang, borang boleh digunakan tanpa internet.</li>
@@ -893,6 +929,7 @@
             <th class="part">Suara</th>
             <th>Total</th>
             <th class="l part">Saved</th>
+            <th class="l part ulasan-col">Ulasan</th>
             <th class="part del-col" aria-label="Delete"></th>
           </tr>
         </thead>
@@ -985,7 +1022,7 @@
 
   submitBtn.addEventListener('click', () => {
     if (!input.value.trim()) {
-      setStatus('> Enter an ID first.', 'err');
+      setStatus('> Isikan dulu ID peserta!', 'err');
       input.focus();
       return;
     }
@@ -1005,7 +1042,7 @@
     if (!input.value.trim()) {
       confirmBox.hidden = true;
       submitRow.hidden = false;
-      setStatus('> Enter an ID first.', 'err');
+      setStatus('> Isikan dulu ID peserta!', 'err');
       input.focus();
       return;
     }
@@ -1020,6 +1057,7 @@
       ...scores,
       // Marks add up to 100.
       total: Object.values(scores).reduce((a, b) => a + b, 0),
+      ulasan: document.getElementById('ulasan').value.trim(),
       savedAt: new Date().toISOString()
     };
     confirmBox.hidden = true;
@@ -1031,6 +1069,7 @@
       setStatus(['> Saved\u00a0', record.id, '\u00a0(' + record.total + '%)'], 'ok');
       resetters.forEach(r => r());
       input.value = '';
+      document.getElementById('ulasan').value = '';
       try { localStorage.removeItem('pixel-id'); } catch (e) {}
     } catch (e) {
       setStatus('> Could not save: storage is blocked.', 'err');
@@ -1057,8 +1096,9 @@
     submitRow.hidden = false;
     setStatus('');
     clearStep = 1;
+    document.getElementById('clear-no').textContent = 'Tak';
     clearQ.textContent = 'Padam semua data?';
-    clearYes.textContent = 'Yes';
+    clearYes.textContent = 'Ya';
     clearBtn.hidden = true;
     clearBox.hidden = false;
     document.getElementById('install-row').hidden = true;
@@ -1073,8 +1113,9 @@
   clearYes.addEventListener('click', () => {
     if (clearStep === 1) {
       clearStep = 2;
-      clearQ.textContent = 'Are you sure?';
-      clearYes.textContent = 'Clear';
+      clearQ.textContent = 'Anda pasti?';
+      clearYes.textContent = 'Pasti!';
+      document.getElementById('clear-no').textContent = 'Batal';
       document.getElementById('clear-no').focus();
       return;
     }
@@ -1084,8 +1125,9 @@
       // Remove only this app's data; other pages on the same site keep theirs.
       APP_KEYS.forEach(k => localStorage.removeItem(k));
       input.value = '';
+      document.getElementById('ulasan').value = '';
       resetters.forEach(r => r());
-      setStatus('> All data cleared.', 'ok');
+      setStatus('> Semua data dah dipadam.', 'ok');
     } catch (e) {
       setStatus('> Could not clear: storage is blocked.', 'err');
     }
@@ -1336,8 +1378,8 @@
       return /[",\r\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
     };
     const first = currentMode === 'rank' ? 'Rank' : '#';
-    const rows = [[first, 'Name', 'Hafazan', 'Fasohah', 'Tajwid', 'Suara & Gaya', 'Total', 'Saved']];
-    records.forEach(r => rows.push([currentMode === 'rank' ? r.place : r.order, r.id, r.hafazan, r.fasohah, r.tajwid, r.suara, r.total, fmtTime(r.savedAt)]));
+    const rows = [[first, 'Name', 'Hafazan', 'Fasohah', 'Tajwid', 'Suara & Gaya', 'Total', 'Saved', 'Ulasan']];
+    records.forEach(r => rows.push([currentMode === 'rank' ? r.place : r.order, r.id, r.hafazan, r.fasohah, r.tajwid, r.suara, r.total, fmtTime(r.savedAt), r.ulasan || '']));
     // BOM so Excel reads names with special characters correctly
     return new Blob(['﻿' + rows.map(r => r.map(cell).join(',')).join('\r\n') + '\r\n'], { type: 'text/csv' });
   }
@@ -1388,7 +1430,8 @@
         [r.tajwid, 'part'],
         [r.suara, 'part'],
         [r.total, 'total'],
-        [fmtTime(r.savedAt), 'l muted part']
+        [fmtTime(r.savedAt), 'l muted part'],
+        [r.ulasan || '', 'l part ulasan-col']
       ];
       cells.forEach(([v, cls]) => {
         const td = document.createElement('td');
@@ -1461,7 +1504,7 @@
   delYes.addEventListener('click', () => {
     if (delStep === 1) {
       delStep = 2;
-      delQ.textContent = 'Are you sure?';
+      delQ.textContent = 'Anda pasti?';
       delYes.textContent = 'Delete';
       document.getElementById('del-no').focus();
       return;
@@ -1606,7 +1649,7 @@
   // ---- Update check -------------------------------------------------------
   // When you publish a new version: raise APP_VERSION here AND the "version" in
   // version.json (both files sit side by side in the GitHub Pages repo).
-  const APP_VERSION = '1.0.0';
+  const APP_VERSION = '1.0.1';
   const UPDATE_URL = 'version.json';          // relative to this page
   const CHECK_EVERY_MS = 24 * 60 * 60 * 1000; // daily
   const CHECK_KEY = 'pemarkahan-update-check';
