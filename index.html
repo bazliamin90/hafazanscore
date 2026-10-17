@@ -1,0 +1,1752 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2f5bd8">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Markah Hafazan">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+</head>
+<body>
+<title>Pemarkahan Hafazan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+  /* Layout: one centered form panel; label left, input right, wraps on narrow screens */
+  :root {
+    --bg: #e9ecf2;
+    --panel: #ffffff;
+    --ink: #1c2233;
+    --muted: #5d6680;
+    --accent: #2f5bd8;
+    --edge: #1c2233;
+    --red: #d63a3a;
+    --green: #2e9e4f;
+    --line: #cfd4e0;
+    --scrim: rgba(28, 34, 51, 0.55);
+    --shine: #ffe58a;
+    --gold-ink: #a87400;
+    --gold: #f7dc7a;
+    --silver: #dde1e8;
+    --bronze: #eec3a0;
+    --font-pixel: "Press Start 2P", "Courier New", monospace;
+    --font-term: "VT323", "Courier New", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151f; --panel: #1b2030; --ink: #e6e9f2; --muted: #8d96b3;
+      --accent: #7ea0ff; --edge: #000000; --line: #2c3349; --scrim: rgba(0, 0, 0, 0.7);
+      --gold: #5c4a12; --silver: #3d4352; --bronze: #5a3620; --shine: #fff6c2; --gold-ink: #e8b52e; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151f; --panel: #1b2030; --ink: #e6e9f2; --muted: #8d96b3;
+    --accent: #7ea0ff; --edge: #000000; --line: #2c3349; --scrim: rgba(0, 0, 0, 0.7);
+      --gold: #5c4a12; --silver: #3d4352; --bronze: #5a3620; --shine: #fff6c2; --gold-ink: #e8b52e; color-scheme: dark;
+  }
+
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-term);
+    font-size: 22px;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 24px;
+    padding-block: 32px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    box-sizing: border-box;
+    -webkit-font-smoothing: none;
+  }
+
+  .panel {
+    width: 100%;
+    max-width: 900px;
+    box-sizing: border-box;
+    background: var(--panel);
+    border: 4px solid var(--edge);
+    box-shadow: 6px 6px 0 var(--edge);
+    padding: 28px 24px;
+  }
+
+  .page-title {
+    margin: 0;
+    width: 100%;
+    max-width: 900px;
+    text-align: center;
+    font-family: var(--font-pixel);
+    font-size: clamp(16px, 4vw, 24px);
+    line-height: 1.5;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    text-wrap: balance;
+  }
+  .title-row .page-title { width: auto; max-width: none; }
+
+  /* Update banner: fixed along the top, so it never pushes the form */
+  .update-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px 14px;
+    padding-top: calc(10px + env(safe-area-inset-top, 0px));
+    padding-bottom: 10px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    background: var(--accent);
+    color: #fff;
+    border-bottom: 4px solid var(--edge);
+    font-size: 21px;
+  }
+  .update-bar[hidden] { display: none; }
+  .update-btn {
+    font-family: var(--font-pixel);
+    font-size: 10px;
+    padding: 8px 10px;
+    color: var(--ink);
+    background: var(--panel);
+    border: 2px solid var(--edge);
+    box-shadow: 3px 3px 0 var(--edge);
+    border-radius: 0;
+    cursor: pointer;
+  }
+  .update-go { background: var(--green); color: #fff; }
+  .update-btn:active { transform: translate(3px, 3px); box-shadow: none; }
+  .update-btn:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+
+  /* Title centred; 💬 sits just to its right */
+  .title-row {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+  .help-btn {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    font-size: 20px;
+    line-height: 1;
+    background: var(--panel);
+    border: 3px solid var(--edge);
+    border-radius: 0;
+    box-shadow: 3px 3px 0 var(--edge);
+    cursor: pointer;
+    transform-origin: 50% 80%;
+    animation: wiggle 4s ease-in-out infinite;
+  }
+  .help-btn:hover { animation-duration: 1.6s; }
+  .help-btn:active { transform: translate(3px, 3px); box-shadow: none; animation: none; }
+  .help-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  @keyframes wiggle {
+    0%, 78%, 100% { transform: rotate(0deg); }
+    82% { transform: rotate(-9deg); }
+    86% { transform: rotate(8deg); }
+    90% { transform: rotate(-5deg); }
+    94% { transform: rotate(3deg); }
+  }
+  @media (prefers-reduced-motion: reduce) { .help-btn { animation: none; } }
+
+  .tutorial-sheet { max-width: 620px; }
+  .tutorial-count {
+    margin: -6px 0 0;
+    font-size: 20px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  /* Scroll area: always-visible chunky scrollbar + bottom fade and hint until the end is reached */
+  .tutorial-scroll {
+    position: relative;
+    min-height: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .tutorial-body {
+    overflow-y: scroll;
+    min-height: 0;
+    flex: 1;
+    display: grid;
+    gap: 12px;
+    padding-right: 10px;
+    padding-bottom: 8px;
+    scrollbar-width: auto;
+    scrollbar-color: var(--accent) var(--bg);
+  }
+  .tutorial-body::-webkit-scrollbar { width: 12px; }
+  .tutorial-body::-webkit-scrollbar-track { background: var(--bg); border-left: 2px solid var(--line); }
+  .tutorial-body::-webkit-scrollbar-thumb { background: var(--accent); border: 2px solid var(--edge); }
+  .tutorial-scroll::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 14px;
+    bottom: 0;
+    height: 64px;
+    background: linear-gradient(to bottom, transparent, var(--panel));
+    pointer-events: none;
+    transition: opacity .2s;
+  }
+  .tutorial-scroll.at-end::after { opacity: 0; }
+  .scroll-hint {
+    position: absolute;
+    left: 50%;
+    bottom: 8px;
+    z-index: 1;
+    transform: translateX(-50%);
+    padding: 6px 10px;
+    font-family: var(--font-pixel);
+    font-size: 10px;
+    color: #fff;
+    background: var(--accent);
+    border: 2px solid var(--edge);
+    box-shadow: 3px 3px 0 var(--edge);
+    cursor: pointer;
+    white-space: nowrap;
+    animation: nudge 1.6s ease-in-out infinite;
+  }
+  .tutorial-scroll.at-end .scroll-hint { display: none; }
+  @keyframes nudge {
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, 4px); }
+  }
+  @media (prefers-reduced-motion: reduce) { .scroll-hint { animation: none; } }
+  .tutorial-steps {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: step;
+    display: grid;
+    gap: 14px;
+  }
+  .tutorial-steps li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 48px;
+    min-height: 30px;
+    font-size: 21px;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+  .tutorial-steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 36px;
+    font-family: var(--font-pixel);
+    font-size: 12px;
+    line-height: 1;
+    text-align: center;
+    padding: 7px 0;
+    color: #fff;
+    background: var(--accent);
+    border: 2px solid var(--edge);
+  }
+  .chip {
+    display: inline-block;
+    padding: 1px 7px;
+    border: 2px solid var(--edge);
+    background: var(--panel);
+    font-family: var(--font-pixel);
+    font-size: 10px;
+    line-height: 1.7;
+    vertical-align: 2px;
+    white-space: nowrap;
+  }
+  .chip-red { background: var(--red); color: #fff; }
+  .chip-green { background: var(--green); color: #fff; }
+  .chip-blue { background: var(--accent); color: #fff; }
+  .chip-gold { color: var(--gold-ink); }
+  .tutorial-empty {
+    margin: 0;
+    padding: 18px 16px;
+    border: 3px dashed var(--muted);
+    color: var(--muted);
+    font-size: 21px;
+    line-height: 1.15;
+  }
+
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+  }
+
+  label {
+    font-family: var(--font-pixel);
+    font-size: 16px;
+    letter-spacing: 0.08em;
+  }
+
+  input {
+    flex: 1 1 200px;
+    min-width: 0;
+    font-family: var(--font-pixel);
+    font-size: 14px;
+    color: var(--ink);
+    background: var(--bg);
+    border: 4px solid var(--edge);
+    border-radius: 0;
+    padding: 12px;
+    outline: none;
+  }
+  input::placeholder { color: var(--muted); }
+  input:focus-visible { border-color: var(--accent); box-shadow: 4px 4px 0 var(--accent); }
+
+  .hint {
+    margin: 18px 0 0;
+    color: var(--muted);
+    font-size: 20px;
+    min-height: 1.2em;
+  }
+
+  .cols {
+    margin-top: 28px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    column-gap: 16px;
+    row-gap: 10px;
+  }
+  @media (max-width: 720px) {
+    .cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .col:nth-child(n+3) { margin-top: 16px; }
+  }
+
+  /* Each column spans 3 shared rows so titles, descriptions and boxes line up across columns */
+  .col {
+    display: grid;
+    grid-row: span 3;
+    grid-template-rows: subgrid;
+    align-items: start;
+    min-width: 0;
+  }
+  .col .score { align-self: end; }
+  .col { container-type: inline-size; }
+  /* Room for "19.5": number and buttons scale with the column width */
+  .score-val { font-size: clamp(12px, 9cqi, 20px) !important; min-width: 0; }
+  .score .btn { width: clamp(26px, 18cqi, 36px); height: clamp(26px, 18cqi, 36px); }
+  .col h2 {
+    margin: 0;
+    font-family: var(--font-pixel);
+    font-size: 12px;
+    line-height: 1.6;
+    letter-spacing: 0.04em;
+    text-align: justify;
+  }
+  .col h2 .max { display: block; color: var(--accent); }
+
+  /* Category title that opens its marking guideline: shiny, not underlined */
+  .guide-link {
+    all: unset;
+    cursor: pointer;
+    font: inherit;
+    letter-spacing: inherit;
+    color: var(--gold-ink);
+    background: linear-gradient(100deg, var(--gold-ink) 0%, var(--gold-ink) 32%, var(--shine) 50%, var(--gold-ink) 68%, var(--gold-ink) 100%);
+    background-size: 250% 100%;
+    background-position: 100% 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shine 2.6s ease-in-out infinite;
+    text-shadow: none;
+  }
+  .guide-link:hover { animation-duration: 1.2s; }
+  .guide-link:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  @keyframes shine {
+    0% { background-position: 100% 0; }
+    60%, 100% { background-position: 0% 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .guide-link { animation: none; -webkit-text-fill-color: var(--gold-ink); }
+  }
+
+  .guide-sheet { max-width: 560px; }
+  .guide-sub { margin: 0; color: var(--muted); font-size: 20px; }
+  .guide-wrap[hidden], .guide-notes[hidden] { display: none; }
+  .guide-notes {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 10px;
+    overflow: auto;
+    min-height: 0;
+  }
+  .guide-notes li {
+    position: relative;
+    padding: 10px 12px 10px 34px;
+    border: 3px solid var(--edge);
+    background: var(--bg);
+    font-size: 21px;
+    line-height: 1.1;
+  }
+  .guide-notes li::before {
+    content: "+";
+    position: absolute;
+    left: 10px;
+    top: 9px;
+    font-family: var(--font-pixel);
+    font-size: 13px;
+    color: var(--green);
+  }
+  .guide-table td { white-space: normal; }
+  .guide-table td.l { font-size: 20px; line-height: 1.05; }
+  .guide-table td.ded { font-family: var(--font-pixel); font-size: 13px; color: var(--red); }
+  .guide-table td.ded { min-width: 3.5em; line-height: 1.5; }
+  .guide-table td.ded.long { font-size: 10px; }
+  .col .desc {
+    text-align: left;
+    margin: 0;
+    color: var(--muted);
+    font-size: 20px;
+    line-height: 1;
+  }
+  .score {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    background: var(--bg);
+    border: 4px solid var(--edge);
+    padding: 6px;
+    user-select: none;
+  }
+  .score-val {
+    flex: 1;
+    text-align: center;
+    font-family: var(--font-pixel);
+    font-size: 20px;
+    font-variant-numeric: tabular-nums;
+  }
+  .btn {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    font-family: var(--font-pixel);
+    font-size: 14px;
+    color: #fff;
+    border: 3px solid var(--edge);
+    border-radius: 0;
+    box-shadow: 3px 3px 0 var(--edge);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .btn-minus { background: var(--red); }
+  .btn-plus { background: var(--green); }
+  .btn:active { transform: translate(3px, 3px); box-shadow: none; }
+  .btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .btn:disabled { opacity: 0.35; cursor: default; transform: none; }
+
+  .col.empty {
+    border: 4px dashed var(--muted);
+    min-height: 120px;
+    opacity: 0.5;
+  }
+
+  .actions {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 4px dotted var(--muted);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 14px;
+  }
+  .btn-row {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 12px;
+  }
+  .btn-row .big-btn[hidden] { display: none; }
+  @media (max-width: 480px) {
+    .panel { padding-top: 20px; padding-left: 16px; padding-right: 16px; }
+    .actions { justify-content: center; }
+    .btn-row { gap: 10px; }
+    .big-btn { padding: 12px 12px; }
+  }
+  /* Status line lives in the panel's bottom strip, beside "!", so it never pushes content */
+  .status {
+    position: absolute;
+    left: 64px;
+    right: 64px;
+    bottom: 0;
+    height: 46px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    text-align: right;
+    line-height: 1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .status.one-line { white-space: nowrap; }
+  .status span { flex: none; }
+  .status .status-name {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 20px;
+    color: var(--muted);
+    min-width: 0;
+  }
+  .status.ok { color: var(--green); }
+  .status.err { color: var(--red); }
+  .confirm {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+  }
+  .confirm[hidden] { display: none; }
+  #confirm { flex-wrap: nowrap; min-height: 44px; }
+  #confirm .confirm-q { white-space: nowrap; }
+  .confirm-q {
+    font-family: var(--font-pixel);
+    font-size: 12px;
+  }
+  .big-btn {
+    font-family: var(--font-pixel);
+    font-size: 12px;
+    color: #fff;
+    padding: 12px 16px;
+    border: 3px solid var(--edge);
+    border-radius: 0;
+    box-shadow: 4px 4px 0 var(--edge);
+    cursor: pointer;
+  }
+  .big-btn:active { transform: translate(4px, 4px); box-shadow: none; }
+  .big-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .btn-submit { background: var(--accent); }
+  .btn-alt { background: var(--panel); color: var(--ink); }
+  .btn-bang { padding-inline: 14px; }
+  /* "!" sits flush in the panel's inner bottom-left corner */
+  .panel { position: relative; padding-bottom: 84px; }
+  .danger-row {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 10px;
+    max-width: 100%;
+  }
+  .danger-row .confirm { flex-wrap: nowrap; gap: 10px; padding-left: 10px; }
+  .danger-row .big-btn { box-shadow: none; border-width: 0; }
+  .danger-row .big-btn:active { transform: none; filter: brightness(0.85); }
+  .btn-bang { border-top: 3px solid var(--edge) !important; border-right: 3px solid var(--edge) !important; }
+  @media (max-width: 480px) {
+    .panel { padding-bottom: 76px; }
+    .danger-row .confirm-q { font-size: 10px; }
+  }
+  .btn-bang[hidden], .btn-row[hidden] { display: none; }
+
+  /* "⬇️" mirrors "!" in the panel's inner bottom-right corner */
+  .install-row {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    max-width: 100%;
+  }
+  .install-row[hidden], .danger-row[hidden], .btn-install[hidden] { display: none; }
+  .install-row .confirm { flex-wrap: nowrap; gap: 10px; padding-right: 10px; min-width: 0; }
+  .install-row .confirm-q { white-space: normal; text-align: right; line-height: 1.5; min-width: 0; }
+  .install-row .big-btn { box-shadow: none; border-width: 0; }
+  .install-row .big-btn:active { transform: none; filter: brightness(0.85); }
+  .btn-install {
+    background: var(--accent);
+    padding-inline: 12px;
+    border-top: 3px solid var(--edge) !important;
+    border-left: 3px solid var(--edge) !important;
+  }
+  @media (max-width: 480px) { .install-row .confirm-q { font-size: 10px; } }
+  .install-body .tutorial-steps li { font-size: 20px; }
+  .install-note { margin: 0; color: var(--muted); font-size: 19px; line-height: 1.2; }
+  #clear-confirm .confirm-q { color: var(--red); }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    background: var(--scrim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding-top: max(16px, env(safe-area-inset-top, 0px));
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .overlay[hidden] { display: none; }
+  .sheet {
+    width: 100%;
+    max-width: 900px;
+    max-height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: var(--panel);
+    border: 4px solid var(--edge);
+    box-shadow: 6px 6px 0 var(--edge);
+    padding: 20px;
+  }
+  .sheet-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .sheet-head h2 {
+    margin: 0;
+    font-family: var(--font-pixel);
+    font-size: 16px;
+    letter-spacing: 0.06em;
+  }
+  .head-btns { display: flex; gap: 10px; }
+  .head-btns .big-btn[hidden] { display: none; }
+  .btn-print { padding: 8px 12px; font-size: 16px; line-height: 1; }
+  .print-confirm[hidden] { display: none; }
+  #print-confirm .confirm-q { flex-basis: 100%; }
+  .sheet-status { margin: 0; font-size: 20px; color: var(--muted); }
+  .png-preview {
+    display: block;
+    max-width: 100%;
+    max-height: 40vh;
+    width: auto;
+    margin: 0 auto;
+    border: 3px solid var(--edge);
+    object-fit: contain;
+  }
+  .png-preview[hidden] { display: none; }
+  .sheet-status.ok { color: var(--green); }
+  .sheet-status.err { color: var(--red); }
+  .table-wrap {
+    overflow: auto;
+    min-height: 0;
+    flex: 1;
+    border: 3px solid var(--edge);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+  }
+  th, td {
+    padding: 8px 10px;
+    text-align: right;
+    white-space: nowrap;
+    border-bottom: 2px solid var(--line);
+  }
+  th.l, td.l { text-align: left; }
+  .rank-mode .part { display: none; }
+  th.del-col, td.del-col { text-align: center; width: 1%; padding-inline: 6px; }
+  .del-btn {
+    background: none;
+    border: 2px solid transparent;
+    padding: 4px 6px;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .del-btn:hover { border-color: var(--red); }
+  tr.pending td { background: var(--bg) !important; color: var(--red); }
+  #del-confirm .confirm-q { color: var(--red); flex-basis: 100%; }
+  .del-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+
+  /* Freeze # and ID while scrolling sideways */
+  th:nth-child(-n+2), td:nth-child(-n+2) { position: sticky; }
+  th:first-child, td:first-child { left: 0; }
+  th:nth-child(2), td:nth-child(2) {
+    left: var(--c1, 56px);
+    box-shadow: 3px 0 0 var(--line);
+  }
+  tbody td:nth-child(-n+2) { background: var(--panel); z-index: 1; }
+  thead th { z-index: 2; }
+  thead th:nth-child(-n+2) { z-index: 3; }
+  thead th {
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    font-family: var(--font-pixel);
+    font-size: 10px;
+    letter-spacing: 0.04em;
+  }
+  td { font-size: 22px; }
+  td.total { font-family: var(--font-pixel); font-size: 13px; color: var(--accent); }
+  td.muted { color: var(--muted); font-size: 18px; }
+  tr.medal td:first-child { font-family: var(--font-pixel); font-size: 13px; }
+  tr.medal-1 td { background: var(--gold) !important; }
+  tr.medal-2 td { background: var(--silver) !important; }
+  tr.medal-3 td { background: var(--bronze) !important; }
+  .empty { margin: 0; color: var(--muted); font-size: 22px; }
+  .btn-yes { background: var(--green); }
+  .btn-no { background: var(--red); }
+</style>
+
+<div class="update-bar" id="update-bar" role="status" hidden>
+  <span class="update-msg" id="update-msg">Versi baru tersedia.</span>
+  <button type="button" class="update-btn update-go" id="update-go">Muat semula</button>
+  <button type="button" class="update-btn" id="update-later">Nanti</button>
+</div>
+
+<header class="title-row">
+  <h1 class="page-title">Pemarkahan Hafazan</h1>
+  <button type="button" class="help-btn" id="help-btn" aria-label="Tutorial" title="Tutorial">💬</button>
+</header>
+<main class="panel">
+  <div class="row">
+    <label for="user-id">ID</label>
+    <input id="user-id" type="text" autocomplete="off" spellcheck="false" placeholder="Name/ID/etc...">
+  </div>
+
+  <section class="cols">
+    <div class="col">
+      <h2><button type="button" class="guide-link" data-guide="hafazan">Hafazan</button><span class="max">(40)</span></h2>
+      <p class="desc">kualiti hafalan</p>
+      <div class="score" data-max="40">
+        <button class="btn btn-minus" type="button" id="hafazan-minus" aria-label="Tolak 0.5 markah">−</button>
+        <output class="score-val" id="score-hafazan" aria-live="polite">40</output>
+        <button class="btn btn-plus" type="button" id="hafazan-plus" aria-label="Tambah 0.5 markah">+</button>
+      </div>
+    </div>
+    <div class="col">
+      <h2><button type="button" class="guide-link" data-guide="fasohah">Fasohah</button><span class="max">(20)</span></h2>
+      <p class="desc">fasih, lahjah arab</p>
+      <div class="score" data-max="20">
+        <button class="btn btn-minus" type="button" id="fasohah-minus" aria-label="Tolak 0.5 markah">−</button>
+        <output class="score-val" id="score-fasohah" aria-live="polite">20</output>
+        <button class="btn btn-plus" type="button" id="fasohah-plus" aria-label="Tambah 0.5 markah">+</button>
+      </div>
+    </div>
+    <div class="col">
+      <h2><button type="button" class="guide-link" data-guide="tajwid">Tajwid</button><span class="max">(30)</span></h2>
+      <p class="desc">makhraj, sifat, dsb.</p>
+      <div class="score" data-max="30">
+        <button class="btn btn-minus" type="button" id="tajwid-minus" aria-label="Tolak 0.5 markah">−</button>
+        <output class="score-val" id="score-tajwid" aria-live="polite">30</output>
+        <button class="btn btn-plus" type="button" id="tajwid-plus" aria-label="Tambah 0.5 markah">+</button>
+      </div>
+    </div>
+    <div class="col">
+      <h2><button type="button" class="guide-link" data-guide="suara">Suara &amp; Gaya</button><span class="max">(10)</span></h2>
+      <p class="desc">lontaran &amp; lenggok suara</p>
+      <div class="score" data-max="10" data-start="0">
+        <button class="btn btn-minus" type="button" id="suara-minus" aria-label="Tolak 0.5 markah">−</button>
+        <output class="score-val" id="score-suara" aria-live="polite">0</output>
+        <button class="btn btn-plus" type="button" id="suara-plus" aria-label="Tambah 0.5 markah">+</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="actions">
+    <p class="status" id="status" aria-live="polite"></p>
+    <div class="btn-row">
+      <button class="big-btn btn-alt" type="button" id="list-btn">List</button>
+      <button class="big-btn btn-alt" type="button" id="rank-btn">Rank</button>
+      <button class="big-btn btn-submit" type="button" id="submit-btn">Submit</button>
+    </div>
+    <div class="confirm" id="confirm" hidden>
+      <span class="confirm-q">Are you sure?</span>
+      <button class="big-btn btn-no" type="button" id="confirm-no">No</button>
+      <button class="big-btn btn-yes" type="button" id="confirm-yes">Yes</button>
+    </div>
+    <div class="danger-row">
+      <button class="big-btn btn-no btn-bang" type="button" id="clear-btn" aria-label="Padam semua data" title="Padam semua data">!</button>
+      <div class="confirm" id="clear-confirm" hidden>
+        <span class="confirm-q" id="clear-q">Padam semua data?</span>
+        <button class="big-btn btn-alt" type="button" id="clear-no">No</button>
+        <button class="big-btn btn-no" type="button" id="clear-yes">Yes</button>
+      </div>
+    </div>
+    <div class="install-row" id="install-row">
+      <div class="confirm" id="install-confirm" hidden>
+        <span class="confirm-q">Pasang borang ini pada peranti anda?</span>
+        <button class="big-btn btn-alt" type="button" id="install-no">No</button>
+        <button class="big-btn btn-yes" type="button" id="install-yes">Yes</button>
+      </div>
+      <button class="big-btn btn-install" type="button" id="install-btn" aria-label="Pasang sebagai aplikasi" title="Pasang sebagai aplikasi">⬇️</button>
+    </div>
+  </footer>
+</main>
+
+<div class="overlay" id="install-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="install-title">
+  <div class="sheet guide-sheet">
+    <header class="sheet-head">
+      <h2 id="install-title">Pasang Borang</h2>
+      <button class="big-btn btn-no" type="button" id="install-close" aria-label="Close">X</button>
+    </header>
+    <div class="tutorial-body install-body" id="install-body"></div>
+  </div>
+</div>
+
+<div class="overlay" id="tutorial-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="tutorial-title">
+  <div class="sheet tutorial-sheet">
+    <header class="sheet-head">
+      <h2 id="tutorial-title">Tutorial</h2>
+      <button class="big-btn btn-no" type="button" id="tutorial-close" aria-label="Close">X</button>
+    </header>
+    <p class="tutorial-count" id="tutorial-count">12 langkah</p>
+    <div class="tutorial-scroll">
+    <div class="tutorial-body" id="tutorial-body">
+      <ol class="tutorial-steps">
+        <li>Taip nama, nombor giliran atau ID peserta. Ini wajib.</li>
+        <li>Markah Hafazan/<wbr>Tajwid/<wbr>Fasohah dimulakan dengan penuh, kemudian dipotong mengikut jenis kesalahan.</li>
+        <li>Markah Suara &amp; Gaya dimulakan dari 0, kemudian juri tambah mengikut kualiti suara peserta.</li>
+        <li>Tekan butang merah <span class="chip chip-red">−</span> untuk potong, dan hijau <span class="chip chip-green">+</span> untuk tambah markah.</li>
+        <li>Tekan pada nama kategori (contoh: <span class="chip chip-gold">Hafazan</span>) yang berwarna gold, untuk paparkan garis panduan pemarkahan bagi kategori tersebut.</li>
+        <li>Selesai beri markah, tekan <span class="chip chip-blue">Submit</span>. Data akan direkodkan secara automatik dan disimpan ke local storage peranti anda.</li>
+        <li>Rujuk <span class="chip">List</span> untuk senarai peserta yang telah direkodkan. Markah bagi setiap kategori pemarkahan juga disertakan.</li>
+        <li>Rujuk <span class="chip">Rank</span> untuk senarai peserta mengikut susunan markah dari yang tertinggi. Markah yang dipaparkan ialah markah total, yang telah dikira secara automatik.</li>
+        <li>Boleh muat turun rekod (senarai peserta atau ranking) dalam bentuk excel (.csv) atau imej (.png). Cuma tekan butang <span class="chip">🖨️</span> pada <span class="chip">List</span> atau <span class="chip">Rank</span>, dan ikut arahan selanjutnya.</li>
+        <li>Untuk memadamkan data peserta tertentu, tekan <span class="chip">List</span>, kemudian tekan tanda <span class="chip">❌</span> pada hujung maklumat peserta tersebut. Datanya juga akan terpadam dari senarai <span class="chip">Rank</span>.</li>
+        <li>Untuk memadamkan semua data, tekan butang merah <span class="chip chip-red">!</span> di bahagian kiri bawah borang ini. Data yang telah dipadam tidak akan dapat dikembalikan.</li>
+        <li>Tekan butang <span class="chip chip-blue">⬇️</span> di kanan bawah borang untuk memasang borang ini sebagai aplikasi pada peranti anda. Selepas dipasang, borang boleh digunakan tanpa internet.</li>
+      </ol>
+    </div>
+    <button type="button" class="scroll-hint" id="scroll-hint" aria-label="Skrol ke bawah">▼ Skrol ke bawah</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="guide-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="guide-title">
+  <div class="sheet guide-sheet">
+    <header class="sheet-head">
+      <h2 id="guide-title">Hafazan</h2>
+      <button class="big-btn btn-no" type="button" id="guide-close" aria-label="Close">X</button>
+    </header>
+    <p class="guide-sub" id="guide-sub"></p>
+    <ul class="guide-notes" id="guide-notes" hidden></ul>
+    <div class="table-wrap guide-wrap" id="guide-wrap">
+      <table class="guide-table">
+        <thead><tr><th class="l">Kesalahan</th><th>Tolak</th></tr></thead>
+        <tbody id="guide-rows"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="overlay-title">
+  <div class="sheet">
+    <header class="sheet-head">
+      <h2 id="overlay-title">List</h2>
+      <div class="head-btns">
+        <button class="big-btn btn-alt btn-print" type="button" id="print-btn" aria-label="Download" title="Download" hidden>🖨️</button>
+        <button class="big-btn btn-no" type="button" id="overlay-close" aria-label="Close">X</button>
+      </div>
+    </header>
+    <div class="confirm print-confirm" id="print-confirm" hidden>
+      <span class="confirm-q" id="print-q">Download rank list as:</span>
+      <button class="big-btn btn-no" type="button" id="print-no">Cancel</button>
+      <button class="big-btn btn-yes" type="button" id="print-yes">PNG</button>
+      <button class="big-btn btn-submit" type="button" id="print-csv">CSV</button>
+    </div>
+    <div class="confirm print-confirm" id="del-confirm" hidden>
+      <span class="confirm-q" id="del-q">Delete this record?</span>
+      <button class="big-btn btn-alt" type="button" id="del-no">No</button>
+      <button class="big-btn btn-no" type="button" id="del-yes">Yes</button>
+    </div>
+    <p class="sheet-status" id="sheet-status" aria-live="polite" hidden></p>
+    <img class="png-preview" id="png-preview" alt="Rank list image" hidden>
+    <div class="table-wrap" id="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th id="col-first">#</th>
+            <th class="l">ID</th>
+            <th class="part">Hafazan</th>
+            <th class="part">Fasohah</th>
+            <th class="part">Tajwid</th>
+            <th class="part">Suara</th>
+            <th>Total</th>
+            <th class="l part">Saved</th>
+            <th class="part del-col" aria-label="Delete"></th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p class="empty" id="overlay-empty" hidden>Tiada rekod lagi. Masukkan ID, tetapkan markah dan tekan Submit.</p>
+  </div>
+</div>
+
+<script>
+  // Every localStorage key this app uses
+  const APP_KEYS = ['markah-records', 'pixel-id', 'pemarkahan-update-check'];
+  const input = document.getElementById('user-id');
+
+  try { input.value = localStorage.getItem('pixel-id') || ''; } catch (e) {}
+
+  input.addEventListener('input', () => {
+    if (statusEl.classList.contains('err') && input.value.trim()) setStatus('');
+    try { localStorage.setItem('pixel-id', input.value); } catch (e) {}
+  });
+
+  const resetters = [];
+  document.querySelectorAll('.score').forEach(box => {
+    const max = Number(box.dataset.max);
+    const out = box.querySelector('.score-val');
+    const minus = box.querySelector('.btn-minus');
+    const plus = box.querySelector('.btn-plus');
+    // Most columns start full and deduct; a column with data-start (Suara & Gaya) starts there and adds
+    const start = box.dataset.start != null ? Number(box.dataset.start) : max;
+    let val = start;
+    const show = () => {
+      out.textContent = val;
+      minus.disabled = val <= 0;
+      plus.disabled = val >= max;
+    };
+    const step = d => {
+      const next = Math.min(max, Math.max(0, val + d));
+      if (next === val) return false;
+      val = next; show();
+      return true;
+    };
+
+    // Press and hold: one step now, then repeat, getting faster the longer it's held.
+    let timer = null;
+    const stop = () => { clearTimeout(timer); timer = null; };
+    const hold = (btn, d) => {
+      btn.addEventListener('pointerdown', e => {
+        if (e.button !== 0) return;
+        e.preventDefault();
+        stop();
+        if (!step(d)) return;
+        let delay = 160;
+        const tick = () => {
+          if (!step(d)) { stop(); return; }
+          delay = Math.max(35, delay * 0.82);
+          timer = setTimeout(tick, delay);
+        };
+        timer = setTimeout(tick, 400);
+      });
+      ['pointerup', 'pointerleave', 'pointercancel'].forEach(t => btn.addEventListener(t, stop));
+      btn.addEventListener('contextmenu', e => e.preventDefault());
+      // Keyboard (Enter / Space) still steps by one.
+      btn.addEventListener('click', e => { if (e.detail === 0) step(d); });
+    };
+    hold(minus, -0.5);
+    hold(plus, 0.5);
+    resetters.push(() => { stop(); val = start; show(); });
+    show();
+  });
+
+  // Submit → confirm → save to localStorage
+  const submitBtn = document.getElementById('submit-btn');
+  const confirmBox = document.getElementById('confirm');
+  const submitRow = document.querySelector('.btn-row');
+  const statusEl = document.getElementById('status');
+  // msg can be a string, or [before, name, after] so a long name shrinks with "…"
+  const setStatus = (msg, kind) => {
+    statusEl.textContent = '';
+    const parts = Array.isArray(msg) ? msg : [msg];
+    parts.forEach((t, i) => {
+      const span = document.createElement('span');
+      span.textContent = t;
+      if (Array.isArray(msg) && i === 1) span.className = 'status-name';
+      statusEl.appendChild(span);
+    });
+    statusEl.className = 'status' + (kind ? ' ' + kind : '') + (Array.isArray(msg) ? ' one-line' : '');
+  };
+  const num = id => Number(document.getElementById(id).textContent);
+
+  submitBtn.addEventListener('click', () => {
+    if (!input.value.trim()) {
+      setStatus('> Enter an ID first.', 'err');
+      input.focus();
+      return;
+    }
+    setStatus('');
+    submitRow.hidden = true;
+    confirmBox.hidden = false;
+    document.getElementById('confirm-no').focus();
+  });
+
+  document.getElementById('confirm-no').addEventListener('click', () => {
+    confirmBox.hidden = true;
+    submitRow.hidden = false;
+    submitBtn.focus();
+  });
+
+  document.getElementById('confirm-yes').addEventListener('click', () => {
+    if (!input.value.trim()) {
+      confirmBox.hidden = true;
+      submitRow.hidden = false;
+      setStatus('> Enter an ID first.', 'err');
+      input.focus();
+      return;
+    }
+    const scores = {
+      hafazan: num('score-hafazan'),
+      fasohah: num('score-fasohah'),
+      tajwid: num('score-tajwid'),
+      suara: num('score-suara')
+    };
+    const record = {
+      id: input.value.trim(),
+      ...scores,
+      // Marks add up to 100.
+      total: Object.values(scores).reduce((a, b) => a + b, 0),
+      savedAt: new Date().toISOString()
+    };
+    confirmBox.hidden = true;
+    submitRow.hidden = false;
+    try {
+      const list = JSON.parse(localStorage.getItem('markah-records') || '[]');
+      list.push(record);
+      localStorage.setItem('markah-records', JSON.stringify(list));
+      setStatus(['> Saved\u00a0', record.id, '\u00a0(' + record.total + '%)'], 'ok');
+      resetters.forEach(r => r());
+      input.value = '';
+      try { localStorage.removeItem('pixel-id'); } catch (e) {}
+    } catch (e) {
+      setStatus('> Could not save: storage is blocked.', 'err');
+    }
+  });
+
+  // "!" → ask twice → wipe this page's storage
+  const clearBtn = document.getElementById('clear-btn');
+  const clearBox = document.getElementById('clear-confirm');
+  const clearQ = document.getElementById('clear-q');
+  const clearYes = document.getElementById('clear-yes');
+  const btnRow = document.querySelector('.btn-row');
+  let clearStep = 0;
+
+  const endClear = () => {
+    clearStep = 0;
+    clearBox.hidden = true;
+    clearBtn.hidden = false;
+    document.getElementById('install-row').hidden = false;
+  };
+
+  clearBtn.addEventListener('click', () => {
+    confirmBox.hidden = true;
+    submitRow.hidden = false;
+    setStatus('');
+    clearStep = 1;
+    clearQ.textContent = 'Padam semua data?';
+    clearYes.textContent = 'Yes';
+    clearBtn.hidden = true;
+    clearBox.hidden = false;
+    document.getElementById('install-row').hidden = true;
+    document.getElementById('clear-no').focus();
+  });
+
+  document.getElementById('clear-no').addEventListener('click', () => {
+    endClear();
+    clearBtn.focus();
+  });
+
+  clearYes.addEventListener('click', () => {
+    if (clearStep === 1) {
+      clearStep = 2;
+      clearQ.textContent = 'Are you sure?';
+      clearYes.textContent = 'Clear';
+      document.getElementById('clear-no').focus();
+      return;
+    }
+    endClear();
+    try {
+      // Delete every key this page stored, then empty the store itself.
+      // Remove only this app's data; other pages on the same site keep theirs.
+      APP_KEYS.forEach(k => localStorage.removeItem(k));
+      input.value = '';
+      resetters.forEach(r => r());
+      setStatus('> All data cleared.', 'ok');
+    } catch (e) {
+      setStatus('> Could not clear: storage is blocked.', 'err');
+    }
+    clearBtn.focus();
+  });
+
+  // List / Ranking overlay
+  const overlay = document.getElementById('overlay');
+  const overlayTitle = document.getElementById('overlay-title');
+  const colFirst = document.getElementById('col-first');
+  const rowsEl = document.getElementById('rows');
+  const tableWrap = document.getElementById('table-wrap');
+  const emptyEl = document.getElementById('overlay-empty');
+  let opener = null;
+
+  const loadRecords = () => {
+    try {
+      const list = JSON.parse(localStorage.getItem('markah-records') || '[]');
+      return Array.isArray(list) ? list : [];
+    } catch (e) { return []; }
+  };
+  const fmtTime = iso => {
+    const d = new Date(iso);
+    if (isNaN(d)) return '';
+    return d.toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+  };
+
+  const listRecords = () => loadRecords().map((r, i) => ({ ...r, order: i + 1 }));
+
+  const rankedRecords = () => {
+    const records = loadRecords().map((r, i) => ({ ...r, order: i + 1 }));
+    records.sort((a, b) => (b.total - a.total) || (a.order - b.order));
+    // Equal totals share a rank (1, 1, 3...)
+    records.forEach((r, i) => {
+      r.place = (i > 0 && r.total === records[i - 1].total) ? records[i - 1].place : i + 1;
+    });
+    return records;
+  };
+
+  // 🖨️ → confirm once → render full rank list to PNG → offer as download
+  const printBtn = document.getElementById('print-btn');
+  const printConfirm = document.getElementById('print-confirm');
+  const sheetStatus = document.getElementById('sheet-status');
+  let downloads = null;
+  let currentMode = 'list';
+  const setSheetStatus = (msg, kind) => {
+    sheetStatus.textContent = msg;
+    sheetStatus.className = 'sheet-status' + (kind ? ' ' + kind : '');
+    sheetStatus.hidden = !msg;
+  };
+  const syncPrintBtn = () => { printBtn.hidden = false; };
+  const modeName = () => currentMode === 'rank' ? 'rank list' : 'list';
+  const filePrefix = () => (currentMode === 'rank' ? 'rank' : 'list') + '-pemarkahan-hafazan-';
+  if (window.claude && typeof window.claude.use === 'function') {
+    window.claude.use('downloads').then(d => { downloads = d; syncPrintBtn(); }).catch(() => {});
+  }
+
+  // Full List (submission order, all columns) drawn to a PNG
+  async function listPng(records) {
+    try { await document.fonts.load('16px "Press Start 2P"'); await document.fonts.load('24px VT323'); } catch (e) {}
+    const scale = 2, W = 1060, padX = 32, rowH = 44, headY = 112;
+    const H = headY + rowH + Math.max(records.length, 1) * rowH + 56;
+    const c = document.createElement('canvas');
+    c.width = W * scale; c.height = H * scale;
+    const g = c.getContext('2d');
+    g.scale(scale, scale);
+    const ink = '#1c2233', muted = '#5d6680', accent = '#2f5bd8', line = '#cfd4e0';
+    const pixel = s => s + 'px "Press Start 2P", "Courier New", monospace';
+    const term = s => s + 'px VT323, "Courier New", monospace';
+
+    g.fillStyle = '#ffffff'; g.fillRect(0, 0, W, H);
+    g.strokeStyle = ink; g.lineWidth = 8; g.strokeRect(4, 4, W - 8, H - 8);
+    g.textBaseline = 'middle';
+    g.fillStyle = accent; g.font = pixel(18); g.textAlign = 'left';
+    g.fillText('Pemarkahan Hafazan', padX, 44);
+    g.fillStyle = muted; g.font = term(24);
+    const now = new Date().toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+    g.fillText('List · ' + records.length + ' peserta · ' + now, padX, 78);
+
+    // column right edges (numbers right-aligned), # and Name / Saved left-aligned
+    const R = W - padX - 8;
+    const cols = [
+      { key: 'order', label: '#', x: padX + 8, align: 'left' },
+      { key: 'id', label: 'ID', x: padX + 64, align: 'left' },
+      { key: 'hafazan', label: 'Hafazan', x: R - 590, align: 'right' },
+      { key: 'fasohah', label: 'Fasohah', x: R - 495, align: 'right' },
+      { key: 'tajwid', label: 'Tajwid', x: R - 400, align: 'right' },
+      { key: 'suara', label: 'Suara', x: R - 315, align: 'right' },
+      { key: 'total', label: 'Total', x: R - 225, align: 'right' },
+      { key: 'savedAt', label: 'Saved', x: R - 200, align: 'left' }
+    ];
+    g.fillStyle = '#e9ecf2'; g.fillRect(padX, headY, W - padX * 2, rowH);
+    g.fillStyle = ink; g.font = pixel(10);
+    cols.forEach(cl => { g.textAlign = cl.align; g.fillText(cl.label, cl.x, headY + rowH / 2); });
+
+    const fit = (text, max) => {
+      if (g.measureText(text).width <= max) return text;
+      let t = text;
+      while (t.length && g.measureText(t + '…').width > max) t = t.slice(0, -1);
+      return t + '…';
+    };
+    const nameMax = (R - 590 - 90) - (padX + 64) - 16;
+    records.forEach((r, i) => {
+      const y = headY + rowH * (i + 1), mid = y + rowH / 2;
+      g.strokeStyle = line; g.lineWidth = 2;
+      g.beginPath(); g.moveTo(padX, y + rowH); g.lineTo(W - padX, y + rowH); g.stroke();
+      cols.forEach(cl => {
+        g.textAlign = cl.align;
+        let v = r[cl.key];
+        if (cl.key === 'savedAt') { g.fillStyle = muted; g.font = term(22); v = fmtTime(v); }
+        else if (cl.key === 'id') { g.fillStyle = ink; g.font = term(26); v = fit(String(v ?? ''), nameMax); }
+        else if (cl.key === 'total') { g.fillStyle = accent; g.font = pixel(13); }
+        else if (cl.key === 'order') { g.fillStyle = ink; g.font = pixel(13); }
+        else { g.fillStyle = ink; g.font = term(26); }
+        g.fillText(String(v ?? ''), cl.x, mid);
+      });
+    });
+    if (!records.length) {
+      g.textAlign = 'left'; g.fillStyle = muted; g.font = term(24);
+      g.fillText('Tiada rekod lagi.', padX + 64, headY + rowH * 1.5);
+    }
+    return new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error('png')), 'image/png'));
+  }
+
+  async function rankPng(records) {
+    try { await document.fonts.load('16px "Press Start 2P"'); await document.fonts.load('24px VT323'); } catch (e) {}
+    const scale = 2, W = 640, padX = 32, rowH = 44, headY = 112;
+    const H = headY + rowH + Math.max(records.length, 1) * rowH + 56;
+    const c = document.createElement('canvas');
+    c.width = W * scale; c.height = H * scale;
+    const g = c.getContext('2d');
+    g.scale(scale, scale);
+    const ink = '#1c2233', muted = '#5d6680', accent = '#2f5bd8', green = '#2e9e4f', line = '#cfd4e0';
+    const pixel = s => s + 'px "Press Start 2P", "Courier New", monospace';
+    const term = s => s + 'px VT323, "Courier New", monospace';
+
+    g.fillStyle = '#ffffff'; g.fillRect(0, 0, W, H);
+    g.strokeStyle = ink; g.lineWidth = 8; g.strokeRect(4, 4, W - 8, H - 8);
+
+    g.textBaseline = 'middle';
+    g.fillStyle = accent; g.font = pixel(18); g.textAlign = 'left';
+    g.fillText('Pemarkahan Hafazan', padX, 44);
+    g.fillStyle = muted; g.font = term(24);
+    const now = new Date().toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+    g.fillText('Rank · ' + records.length + ' peserta · ' + now, padX, 78);
+
+    const xRank = padX + 8, xId = padX + 80, xTotal = W - padX - 8;
+    g.fillStyle = '#e9ecf2'; g.fillRect(padX, headY, W - padX * 2, rowH);
+    g.fillStyle = ink; g.font = pixel(11);
+    g.textAlign = 'left'; g.font = '18px sans-serif'; g.fillText('🏆', xRank, headY + rowH / 2);
+    g.font = pixel(11); g.fillText('ID', xId, headY + rowH / 2);
+    g.textAlign = 'right'; g.fillText('Total', xTotal, headY + rowH / 2);
+
+    const fit = (text, max) => {
+      if (g.measureText(text).width <= max) return text;
+      let t = text;
+      while (t.length && g.measureText(t + '…').width > max) t = t.slice(0, -1);
+      return t + '…';
+    };
+    const medalFill = { 1: '#f7dc7a', 2: '#dde1e8', 3: '#eec3a0' };
+    records.forEach((r, i) => {
+      const y = headY + rowH * (i + 1);
+      if (medalFill[r.place]) { g.fillStyle = medalFill[r.place]; g.fillRect(padX, y, W - padX * 2, rowH); }
+      g.strokeStyle = line; g.lineWidth = 2;
+      g.beginPath(); g.moveTo(padX, y + rowH); g.lineTo(W - padX, y + rowH); g.stroke();
+      const mid = y + rowH / 2;
+      g.textAlign = 'left';
+      g.fillStyle = ink; g.font = pixel(13);
+      g.fillText(String(r.place), xRank, mid);
+      g.fillStyle = ink; g.font = term(26);
+      g.fillText(fit(String(r.id ?? ''), xTotal - xId - 90), xId, mid);
+      g.textAlign = 'right'; g.fillStyle = accent; g.font = pixel(13);
+      g.fillText(String(r.total), xTotal, mid);
+    });
+    if (!records.length) {
+      g.textAlign = 'left'; g.fillStyle = muted; g.font = term(24);
+      g.fillText('Tiada rekod lagi.', xId, headY + rowH * 1.5);
+    }
+    return new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error('png')), 'image/png'));
+  }
+
+  const pngPreview = document.getElementById('png-preview');
+  let previewUrl = null;
+  function showPngPreview(url) {
+    if (previewUrl && previewUrl !== url) URL.revokeObjectURL(previewUrl);
+    previewUrl = url;
+    pngPreview.src = url;
+    pngPreview.hidden = false;
+  }
+  function hidePngPreview() {
+    pngPreview.hidden = true;
+    pngPreview.removeAttribute('src');
+    if (previewUrl) { URL.revokeObjectURL(previewUrl); previewUrl = null; }
+  }
+
+  printBtn.addEventListener('click', () => {
+    setSheetStatus('');
+    document.getElementById('print-q').textContent = 'Download ' + modeName() + ' as:';
+    printBtn.hidden = true;
+    printConfirm.hidden = false;
+    document.getElementById('print-no').focus();
+  });
+  document.getElementById('print-no').addEventListener('click', () => {
+    printConfirm.hidden = true;
+    syncPrintBtn();
+    printBtn.focus();
+  });
+  const fileStamp = () => {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  };
+
+  // Saves a file: Claude's save prompt inside Claude, a normal download elsewhere.
+  async function saveFile(blob, filename, label, isImage) {
+    if (downloads) {
+      try {
+        await downloads.save({ filename, data: blob });
+        setSheetStatus('> ' + (currentMode === 'rank' ? 'Rank list' : 'List') + ' saved as ' + label + '.', 'ok');
+        printBtn.focus();
+        return;
+      } catch (e) {
+        const code = e && e.code;
+        if (code === 'declined') { setSheetStatus('> Download cancelled.'); printBtn.focus(); return; }
+        if (code === 'rate_limited') { setSheetStatus('> A download prompt is already open. Try again in a moment.', 'err'); return; }
+        // otherwise fall through to the browser fallback
+      }
+    }
+    const url = URL.createObjectURL(blob);
+    try {
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+    } catch (e) {}
+    if (isImage) {
+      // Also show the image, so it can be saved by hand if the browser blocked the download.
+      showPngPreview(url);
+      setSheetStatus('> PNG ready. If it did not download, right-click or long-press the image to save it.', 'ok');
+    } else {
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      setSheetStatus('> CSV downloaded.', 'ok');
+    }
+    printBtn.focus();
+  }
+
+  function rankCsv(records) {
+    const cell = v => {
+      const t = v == null ? '' : String(v);
+      return /[",\r\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+    };
+    const first = currentMode === 'rank' ? 'Rank' : '#';
+    const rows = [[first, 'Name', 'Hafazan', 'Fasohah', 'Tajwid', 'Suara & Gaya', 'Total', 'Saved']];
+    records.forEach(r => rows.push([currentMode === 'rank' ? r.place : r.order, r.id, r.hafazan, r.fasohah, r.tajwid, r.suara, r.total, fmtTime(r.savedAt)]));
+    // BOM so Excel reads names with special characters correctly
+    return new Blob(['﻿' + rows.map(r => r.map(cell).join(',')).join('\r\n') + '\r\n'], { type: 'text/csv' });
+  }
+
+  document.getElementById('print-yes').addEventListener('click', async () => {
+    printConfirm.hidden = true;
+    syncPrintBtn();
+    setSheetStatus('> Preparing image…');
+    let blob;
+    try { blob = currentMode === 'rank' ? await rankPng(rankedRecords()) : await listPng(listRecords()); }
+    catch (e) { setSheetStatus('> Could not create the image.', 'err'); return; }
+    await saveFile(blob, filePrefix() + fileStamp() + '.png', 'PNG', true);
+  });
+
+  document.getElementById('print-csv').addEventListener('click', async () => {
+    printConfirm.hidden = true;
+    syncPrintBtn();
+    hidePngPreview();
+    const blob = rankCsv(currentMode === 'rank' ? rankedRecords() : listRecords());
+    await saveFile(blob, filePrefix() + fileStamp() + '.csv', 'CSV', false);
+  });
+
+  function openOverlay(mode, btn) {
+    opener = btn;
+    currentMode = mode;
+    printConfirm.hidden = true;
+    document.getElementById('del-confirm').hidden = true;
+    hidePngPreview();
+    setSheetStatus('');
+    syncPrintBtn();
+    let records = mode === 'rank'
+      ? rankedRecords()
+      : loadRecords().map((r, i) => ({ ...r, order: i + 1 }));
+    overlayTitle.textContent = mode === 'rank' ? 'Rank' : 'List';
+    colFirst.textContent = mode === 'rank' ? '🏆' : '#';
+    if (mode === 'rank') colFirst.setAttribute('aria-label', 'Rank'); else colFirst.removeAttribute('aria-label');
+    tableWrap.classList.toggle('rank-mode', mode === 'rank');
+
+    rowsEl.textContent = '';
+    records.forEach(r => {
+      const tr = document.createElement('tr');
+      if (mode === 'rank' && r.place <= 3) tr.className = 'medal medal-' + r.place;
+      const cells = [
+        [mode === 'rank' ? r.place : r.order, ''],
+        [r.id, 'l'],
+        [r.hafazan, 'part'],
+        [r.fasohah, 'part'],
+        [r.tajwid, 'part'],
+        [r.suara, 'part'],
+        [r.total, 'total'],
+        [fmtTime(r.savedAt), 'l muted part']
+      ];
+      cells.forEach(([v, cls]) => {
+        const td = document.createElement('td');
+        td.textContent = v ?? '';
+        if (cls) td.className = cls;
+        tr.appendChild(td);
+      });
+      if (mode !== 'rank') {
+        const td = document.createElement('td');
+        td.className = 'part del-col';
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'del-btn';
+        del.textContent = '❌';
+        del.dataset.order = r.order;
+        del.setAttribute('aria-label', 'Delete ' + (r.id || 'row ' + r.order));
+        td.appendChild(del);
+        tr.appendChild(td);
+      }
+      rowsEl.appendChild(tr);
+    });
+    tableWrap.hidden = records.length === 0;
+    emptyEl.hidden = records.length !== 0;
+
+    overlay.hidden = false;
+    tableWrap.scrollLeft = 0;
+    tableWrap.style.setProperty('--c1', colFirst.offsetWidth + 'px');
+    document.getElementById('overlay-close').focus();
+  }
+  function closeOverlay() {
+    overlay.hidden = true;
+    if (opener) opener.focus();
+  }
+
+  // ❌ in List deletes that one record
+  const delConfirm = document.getElementById('del-confirm');
+  const delQ = document.getElementById('del-q');
+  const delYes = document.getElementById('del-yes');
+  let delIdx = -1, delStep = 0, delName = '', delBtnRef = null;
+
+  const endDelete = () => {
+    delStep = 0; delIdx = -1;
+    delConfirm.hidden = true;
+    rowsEl.querySelectorAll('tr.pending').forEach(tr => tr.classList.remove('pending'));
+  };
+
+  rowsEl.addEventListener('click', e => {
+    const btn = e.target.closest('.del-btn');
+    if (!btn) return;
+    endDelete();
+    printConfirm.hidden = true;
+    setSheetStatus('');
+    delIdx = Number(btn.dataset.order) - 1;
+    delName = (loadRecords()[delIdx] || {}).id || 'this record';
+    delBtnRef = btn;
+    btn.closest('tr').classList.add('pending');
+    delStep = 1;
+    delQ.textContent = 'Delete ' + delName + '?';
+    delYes.textContent = 'Yes';
+    delConfirm.hidden = false;
+    document.getElementById('del-no').focus();
+  });
+
+  document.getElementById('del-no').addEventListener('click', () => {
+    const ref = delBtnRef;
+    endDelete();
+    if (ref && ref.isConnected) ref.focus();
+  });
+
+  delYes.addEventListener('click', () => {
+    if (delStep === 1) {
+      delStep = 2;
+      delQ.textContent = 'Are you sure?';
+      delYes.textContent = 'Delete';
+      document.getElementById('del-no').focus();
+      return;
+    }
+    const idx = delIdx;
+    endDelete();
+    if (idx < 0) return;
+    const top = tableWrap.scrollTop, left = tableWrap.scrollLeft;
+    try {
+      const list = loadRecords();
+      const [gone] = list.splice(idx, 1);
+      localStorage.setItem('markah-records', JSON.stringify(list));
+      openOverlay('list', opener);
+      tableWrap.scrollTop = top; tableWrap.scrollLeft = left;
+      setSheetStatus('> Deleted ' + ((gone && gone.id) || 'row') + '.', 'ok');
+    } catch (err) {
+      setSheetStatus('> Could not delete. This browser is blocking storage.', 'err');
+    }
+  });
+
+  document.getElementById('list-btn').addEventListener('click', e => openOverlay('list', e.currentTarget));
+  document.getElementById('rank-btn').addEventListener('click', e => openOverlay('rank', e.currentTarget));
+  document.getElementById('overlay-close').addEventListener('click', closeOverlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeOverlay(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !overlay.hidden) closeOverlay(); });
+
+  // 💬 tutorial overlay
+  const tutorialOverlay = document.getElementById('tutorial-overlay');
+  const helpBtn = document.getElementById('help-btn');
+  const closeTutorial = () => { tutorialOverlay.hidden = true; helpBtn.focus(); };
+  const tutBody = document.getElementById('tutorial-body');
+  const tutScroll = tutBody.parentElement;
+  const tutSteps = tutBody.querySelectorAll('.tutorial-steps li');
+  const tutCount = document.getElementById('tutorial-count');
+  // Shows which steps are on screen ("Langkah 1–4 daripada 10") and hides the hint at the end
+  const updateTutorial = () => {
+    const box = tutBody.getBoundingClientRect();
+    let first = 0, last = 0;
+    tutSteps.forEach((li, i) => {
+      const r = li.getBoundingClientRect();
+      if (r.bottom > box.top + 4 && r.top < box.bottom - 4) { if (!first) first = i + 1; last = i + 1; }
+    });
+    const atEnd = tutBody.scrollTop + tutBody.clientHeight >= tutBody.scrollHeight - 6;
+    tutScroll.classList.toggle('at-end', atEnd);
+    tutCount.textContent = (first && !(first === 1 && last === tutSteps.length))
+      ? 'Langkah ' + first + '–' + last + ' daripada ' + tutSteps.length
+      : tutSteps.length + ' langkah';
+  };
+  tutBody.addEventListener('scroll', updateTutorial, { passive: true });
+  window.addEventListener('resize', () => { if (!tutorialOverlay.hidden) updateTutorial(); });
+  document.getElementById('scroll-hint').addEventListener('click', () => {
+    tutBody.scrollBy({ top: tutBody.clientHeight * 0.8, behavior: 'smooth' });
+  });
+  helpBtn.addEventListener('click', () => {
+    tutorialOverlay.hidden = false;
+    tutBody.scrollTop = 0;
+    updateTutorial();
+    document.getElementById('tutorial-close').focus();
+  });
+  document.getElementById('tutorial-close').addEventListener('click', closeTutorial);
+  tutorialOverlay.addEventListener('click', e => { if (e.target === tutorialOverlay) closeTutorial(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !tutorialOverlay.hidden) closeTutorial(); });
+
+  // Marking guidelines, opened from the shiny category titles
+  const GUIDES = {
+    hafazan: {
+      title: 'Hafazan',
+      sub: 'Kualiti hafalan · markah penuh 40',
+      rows: [
+        ['Berulang-ulang', '-1'],
+        ['Terhenti-henti', '-1'],
+        ['Teragak-agak', '-1'],
+        ['Tertinggal / Tertambah huruf / Salah baris', '-1'],
+        ['Tertinggal / Tertambah 1 kalimah', '-2'],
+        ['Salah sambung', '-2'],
+        ['Langkau / Tersasul', '-2'],
+        ['Tak tadwir', '-1'],
+        ['Tak habiskan ayat / surah selepas diperingatkan', '-1 setiap 10 saat'],
+        ['Gagal jawab soalan', '-10']
+      ]
+    },
+    fasohah: {
+      title: 'Fasohah',
+      sub: 'Fasih, lahjah Arab · markah penuh 20',
+      rows: [
+        ['Setiap kesalahan fasohah (tak lahjah Arab, tak jelas lafaz)', '-1'],
+        ['Setiap soalan gagal dijawab', '-8']
+      ]
+    },
+    tajwid: {
+      title: 'Tajwid',
+      sub: 'Makhraj, sifat, dsb. · markah penuh 30',
+      rows: [
+        ['Setiap kesalahan tajwid', '-1'],
+        ['Tak konsisten kadar Mad', '-1'],
+        ['Tak konsisten kadar Ghunnah', '-1'],
+        ['Setiap soalan gagal', '-8']
+      ]
+    },
+    suara: {
+      title: 'Suara & Gaya',
+      sub: 'Lontaran & lenggok suara · markah penuh 10',
+      notes: [
+        'Beri markah untuk suara merdu, bersih, licin, tenang dan lantang.',
+        'Beri markah untuk suara yang kekal konsisten.',
+        'Beri markah lebih jika gunakan rentak-rentak suara.'
+      ]
+    }
+  };
+  const guideOverlay = document.getElementById('guide-overlay');
+  let guideOpener = null;
+  function openGuide(key, btn) {
+    const g = GUIDES[key]; if (!g) return;
+    guideOpener = btn;
+    document.getElementById('guide-title').textContent = g.title;
+    document.getElementById('guide-sub').textContent = g.sub;
+    const body = document.getElementById('guide-rows');
+    const notes = document.getElementById('guide-notes');
+    body.textContent = '';
+    notes.textContent = '';
+    (g.notes || []).forEach(t => { const li = document.createElement('li'); li.textContent = t; notes.appendChild(li); });
+    notes.hidden = !g.notes;
+    document.getElementById('guide-wrap').hidden = !g.rows;
+    (g.rows || []).forEach(([what, ded]) => {
+      const tr = document.createElement('tr');
+      const a = document.createElement('td'); a.className = 'l'; a.textContent = what;
+      const b = document.createElement('td'); b.className = 'ded' + (ded.length > 4 ? ' long' : ''); b.textContent = ded;
+      tr.append(a, b); body.appendChild(tr);
+    });
+    guideOverlay.hidden = false;
+    document.getElementById('guide-close').focus();
+  }
+  function closeGuide() {
+    guideOverlay.hidden = true;
+    if (guideOpener) guideOpener.focus();
+  }
+  document.querySelectorAll('.guide-link').forEach(b => b.addEventListener('click', () => openGuide(b.dataset.guide, b)));
+  document.getElementById('guide-close').addEventListener('click', closeGuide);
+  guideOverlay.addEventListener('click', e => { if (e.target === guideOverlay) closeGuide(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !guideOverlay.hidden) closeGuide(); });
+
+  // ---- Update check -------------------------------------------------------
+  // When you publish a new version: raise APP_VERSION here AND the "version" in
+  // version.json (both files sit side by side in the GitHub Pages repo).
+  const APP_VERSION = '1.0.0';
+  const UPDATE_URL = 'version.json';          // relative to this page
+  const CHECK_EVERY_MS = 24 * 60 * 60 * 1000; // daily
+  const CHECK_KEY = 'pemarkahan-update-check';
+
+  const newer = (a, b) => {
+    const x = String(a).split('.').map(Number), y = String(b).split('.').map(Number);
+    for (let i = 0; i < Math.max(x.length, y.length); i++) {
+      const d = (x[i] || 0) - (y[i] || 0);
+      if (d) return d > 0;
+    }
+    return false;
+  };
+  const updateBar = document.getElementById('update-bar');
+  let snoozedVersion = null, latestVersion = null;
+
+  async function checkForUpdate(force) {
+    if (!/^https?:$/.test(location.protocol)) return;     // a downloaded file can't check
+    let last = 0;
+    try { last = Number(localStorage.getItem(CHECK_KEY)) || 0; } catch (e) {}
+    if (!force && Date.now() - last < CHECK_EVERY_MS) return;
+    try {
+      const res = await fetch(UPDATE_URL + '?t=' + Date.now(), { cache: 'no-store' });
+      if (!res.ok) return;
+      const info = await res.json();
+      try { localStorage.setItem(CHECK_KEY, String(Date.now())); } catch (e) {}
+      if (info && info.version && newer(info.version, APP_VERSION) && info.version !== snoozedVersion) {
+        latestVersion = info.version;
+        document.getElementById('update-msg').textContent =
+          'Versi baru ' + info.version + ' tersedia' + (info.notes ? ': ' + info.notes : '.');
+        updateBar.hidden = false;
+      }
+    } catch (e) { /* offline or no version.json: stay quiet */ }
+  }
+
+  document.getElementById('update-go').addEventListener('click', () => {
+    // Load the new page fresh, skipping any cached copy. Saved records stay.
+    const url = new URL(location.href);
+    url.searchParams.set('v', latestVersion || Date.now());
+    location.replace(url.toString());
+  });
+  document.getElementById('update-later').addEventListener('click', () => {
+    snoozedVersion = latestVersion;
+    updateBar.hidden = true;
+  });
+
+  // Check on open, whenever the tab comes back into view, and hourly while open
+  // (each only fetches if the last real check was over a day ago).
+  checkForUpdate(true);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) checkForUpdate(false); });
+  setInterval(() => checkForUpdate(false), 60 * 60 * 1000);
+
+  // ---- Install as an app (PWA) ---------------------------------------------
+  const installRow = document.getElementById('install-row');
+  const installBtn = document.getElementById('install-btn');
+  const installConfirm = document.getElementById('install-confirm');
+  const dangerRow = document.querySelector('.danger-row');
+  const installOverlay = document.getElementById('install-overlay');
+  let deferredPrompt = null;
+
+  const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const onWeb = /^https?:$/.test(location.protocol);
+  let inFrame = false; try { inFrame = window.top !== window.self; } catch (e) { inFrame = true; }
+
+  if (isStandalone()) installBtn.hidden = true;   // already running as the installed app
+
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; });
+  window.addEventListener('appinstalled', () => {
+    deferredPrompt = null;
+    installBtn.hidden = true;
+    setStatus('> Borang telah dipasang.', 'ok');
+  });
+
+  const endInstall = () => {
+    installConfirm.hidden = true;
+    installBtn.hidden = isStandalone();
+    dangerRow.hidden = false;
+  };
+  installBtn.addEventListener('click', () => {
+    setStatus('');
+    installBtn.hidden = true;
+    dangerRow.hidden = true;          // give the question the whole bottom strip
+    installConfirm.hidden = false;
+    document.getElementById('install-no').focus();
+  });
+  document.getElementById('install-no').addEventListener('click', () => { endInstall(); installBtn.focus(); });
+
+  function showInstallGuide() {
+    const body = document.getElementById('install-body');
+    let steps, note = '';
+    if (!onWeb || inFrame) {
+      steps = ['Buka borang ini melalui pautan GitHub dalam Chrome atau Safari (bukan fail yang dimuat turun atau pratonton).',
+               'Kemudian tekan ⬇️ sekali lagi.'];
+    } else if (isIOS) {
+      steps = ['Buka borang ini dalam Safari.',
+               'Tekan butang Share (kotak dengan anak panah ke atas) di bar bawah.',
+               'Pilih "Add to Home Screen" / "Tambah ke Skrin Utama".',
+               'Tekan "Add". Ikon borang akan muncul di skrin utama.'];
+      note = 'Rekod yang disimpan di Safari tidak dikongsi dengan aplikasi yang dipasang. Gunakan satu sahaja.';
+    } else {
+      steps = ['Android (Chrome): tekan menu ⋮ di atas kanan, kemudian "Install app" atau "Add to Home screen".',
+               'Komputer (Chrome / Edge): tekan ikon pasang di hujung kanan bar alamat.',
+               'Jika pilihan tiada, buka borang ini dalam Chrome.'];
+    }
+    body.textContent = '';
+    const ol = document.createElement('ol'); ol.className = 'tutorial-steps';
+    steps.forEach(t => { const li = document.createElement('li'); li.textContent = t; ol.appendChild(li); });
+    body.appendChild(ol);
+    if (note) { const p = document.createElement('p'); p.className = 'install-note'; p.textContent = note; body.appendChild(p); }
+    installOverlay.hidden = false;
+    document.getElementById('install-close').focus();
+  }
+  const closeInstallGuide = () => { installOverlay.hidden = true; installBtn.focus(); };
+  document.getElementById('install-close').addEventListener('click', closeInstallGuide);
+  installOverlay.addEventListener('click', e => { if (e.target === installOverlay) closeInstallGuide(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !installOverlay.hidden) closeInstallGuide(); });
+
+  document.getElementById('install-yes').addEventListener('click', async () => {
+    endInstall();
+    if (deferredPrompt) {
+      const p = deferredPrompt; deferredPrompt = null;
+      try {
+        await p.prompt();
+        const { outcome } = await p.userChoice;
+        setStatus(outcome === 'accepted' ? '> Sedang dipasang…' : '> Pemasangan dibatalkan.', outcome === 'accepted' ? 'ok' : undefined);
+      } catch (e) { showInstallGuide(); }
+    } else {
+      showInstallGuide();
+    }
+  });
+
+  // Offline support: only when served from the web (e.g. GitHub Pages).
+  // The ?v= ties the offline copy to APP_VERSION, so bumping the version refreshes it.
+  if (onWeb && 'serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js?v=' + encodeURIComponent(APP_VERSION)).catch(() => {});
+    });
+  }
+</script>
+
+</body>
+</html>
