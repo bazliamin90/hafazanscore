@@ -90,6 +90,14 @@
     text-wrap: balance;
   }
   .title-row .page-title { width: auto; max-width: none; }
+  .app-version {
+    margin: -8px 0 0;
+    font-family: var(--font-pixel);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    text-align: center;
+  }
 
   /* Update banner: fixed along the top, so it never pushes the form */
   .update-bar {
@@ -889,6 +897,7 @@
     </div>
   </footer>
 </main>
+<p class="app-version" id="app-version"></p>
 
 <div class="overlay" id="install-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="install-title">
   <div class="sheet guide-sheet">
@@ -1701,9 +1710,9 @@
   // ---- Update check -------------------------------------------------------
   // When you publish a new version: raise APP_VERSION here AND the "version" in
   // version.json (both files sit side by side in the GitHub Pages repo).
-  const APP_VERSION = '1.0.2';
+  const APP_VERSION = '1.0.3';
   // Shown once on each device after it moves to this version. Leave '' for no note.
-  const WHATS_NEW = '17/10/2026: Antara muka web dikemas kini untuk lebih lancar.';
+  const WHATS_NEW = '17/10/2026: Nombor versi kini dipaparkan di bawah borang.';
   const UPDATE_URL = 'version.json';          // relative to this page
   const CHECK_EVERY_MS = 24 * 60 * 60 * 1000; // daily
   const CHECK_KEY = 'pemarkahan-update-check';
@@ -1751,6 +1760,8 @@
 
   // Check on open, whenever the tab comes back into view, and hourly while open
   // (each only fetches if the last real check was over a day ago).
+  document.getElementById('app-version').textContent = 'Versi ' + APP_VERSION;
+
   // ---- "Updated to x.y.z" note, once per device per version ----------------
   // Kept out of APP_KEYS on purpose, so "!" (clear all) doesn't reset it.
   const SEEN_KEY = 'pemarkahan-seen-version';
