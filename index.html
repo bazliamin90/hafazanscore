@@ -59,6 +59,7 @@
     display: grid;
     place-items: center;
     align-content: center;
+    grid-template-columns: minmax(0, 1fr);  /* never wider than the screen */
     gap: 24px;
     padding-block: 32px;
     padding-left: max(16px, env(safe-area-inset-left, 0px));
@@ -564,6 +565,13 @@
     gap: 12px;
   }
   .btn-row .big-btn[hidden] { display: none; }
+  @media (max-width: 420px) {
+    .btn-row { gap: 8px; }
+    .btn-row .big-btn { font-size: 10px; padding: 12px 9px; }
+  }
+  @media (max-width: 360px) {
+    .btn-row .big-btn { font-size: 9px; padding: 11px 7px; }
+  }
   @media (max-width: 480px) {
     .panel { padding-top: 20px; padding-left: 16px; padding-right: 16px; }
     .actions { justify-content: center; }
@@ -870,9 +878,9 @@
   <footer class="actions">
     <p class="status" id="status" aria-live="polite"></p>
     <div class="btn-row">
-      <button class="big-btn btn-alt" type="button" id="list-btn">List</button>
-      <button class="big-btn btn-alt" type="button" id="rank-btn">Rank</button>
-      <button class="big-btn btn-submit" type="button" id="submit-btn">Submit</button>
+      <button class="big-btn btn-alt" type="button" id="list-btn">Senarai</button>
+      <button class="big-btn btn-alt" type="button" id="rank-btn">Carta</button>
+      <button class="big-btn btn-submit" type="button" id="submit-btn">Simpan</button>
     </div>
     <div class="confirm" id="confirm" hidden>
       <span class="confirm-q">Are you sure?</span>
@@ -890,8 +898,8 @@
     <div class="install-row" id="install-row">
       <div class="confirm" id="install-confirm" hidden>
         <span class="confirm-q">Pasang borang ini pada peranti anda?</span>
-        <button class="big-btn btn-alt" type="button" id="install-no">No</button>
-        <button class="big-btn btn-yes" type="button" id="install-yes">Yes</button>
+        <button class="big-btn btn-alt" type="button" id="install-no">Tak</button>
+        <button class="big-btn btn-yes" type="button" id="install-yes">Ya</button>
       </div>
       <button class="big-btn btn-install" type="button" id="install-btn" aria-label="Pasang sebagai aplikasi" title="Pasang sebagai aplikasi">⬇️</button>
     </div>
@@ -924,12 +932,12 @@
         <li>Markah Suara &amp; Gaya dimulakan dari 0, kemudian juri tambah mengikut kualiti suara peserta.</li>
         <li>Tekan butang merah <span class="chip chip-red">−</span> untuk potong, dan hijau <span class="chip chip-green">+</span> untuk tambah markah.</li>
         <li>Tekan pada nama kategori (contoh: <span class="chip chip-gold">Hafazan</span>) yang berwarna gold, untuk paparkan garis panduan pemarkahan bagi kategori tersebut.</li>
-        <li>Selesai beri markah, tekan <span class="chip chip-blue">Submit</span>. Data akan direkodkan secara automatik dan disimpan ke local storage peranti anda.</li>
-        <li>Rujuk <span class="chip">List</span> untuk senarai peserta yang telah direkodkan. Markah bagi setiap kategori pemarkahan juga disertakan.</li>
-        <li>Rujuk <span class="chip">Rank</span> untuk senarai peserta mengikut susunan markah dari yang tertinggi. Markah yang dipaparkan ialah markah total, yang telah dikira secara automatik.</li>
-        <li>Boleh muat turun rekod (senarai peserta atau ranking) dalam bentuk excel (.csv) atau imej (.png). Cuma tekan butang <span class="chip">🖨️</span> pada <span class="chip">List</span> atau <span class="chip">Rank</span>, dan ikut arahan selanjutnya.</li>
-        <li>Ruangan <span class="chip">Ulasan</span> adalah pilihan. Anda boleh menulis catatan tentang peserta sebelum menekan <span class="chip chip-blue">Submit</span>. Ulasan dipaparkan dalam <span class="chip">List</span> dan disertakan dalam fail .csv.</li>
-        <li>Untuk memadamkan data peserta tertentu, tekan <span class="chip">List</span>, kemudian tekan tanda <span class="chip">❌</span> pada hujung maklumat peserta tersebut. Datanya juga akan terpadam dari senarai <span class="chip">Rank</span>.</li>
+        <li>Selesai beri markah, tekan <span class="chip chip-blue">Simpan</span>. Data akan direkodkan secara automatik dan disimpan ke local storage peranti anda.</li>
+        <li>Rujuk <span class="chip">Senarai</span> untuk senarai peserta yang telah direkodkan. Markah bagi setiap kategori pemarkahan juga disertakan.</li>
+        <li>Rujuk <span class="chip">Carta</span> untuk senarai peserta mengikut susunan markah dari yang tertinggi. Markah yang dipaparkan ialah markah total, yang telah dikira secara automatik.</li>
+        <li>Boleh muat turun rekod (senarai atau carta peserta) dalam bentuk excel (.csv) atau imej (.png). Cuma tekan butang <span class="chip">🖨️</span> pada <span class="chip">Senarai</span> atau <span class="chip">Carta</span>, dan ikut arahan selanjutnya.</li>
+        <li>Ruangan <span class="chip">Ulasan</span> adalah pilihan. Anda boleh menulis catatan tentang peserta sebelum menekan <span class="chip chip-blue">Simpan</span>. Ulasan dipaparkan dalam <span class="chip">Senarai</span> dan disertakan dalam fail .csv.</li>
+        <li>Untuk memadamkan data peserta tertentu, tekan <span class="chip">Senarai</span>, kemudian tekan tanda <span class="chip">❌</span> pada hujung maklumat peserta tersebut. Datanya juga akan terpadam dari senarai <span class="chip">Carta</span>.</li>
         <li>Untuk memadamkan semua data, tekan butang merah <span class="chip chip-red">!</span> di bahagian kiri bawah borang ini. Data yang telah dipadam tidak akan dapat dikembalikan.</li>
         <li>Tekan butang <span class="chip chip-blue">⬇️</span> di kanan bawah borang untuk memasang borang ini sebagai aplikasi pada peranti anda. Selepas dipasang, borang boleh digunakan tanpa internet.</li>
       </ol>
@@ -959,14 +967,14 @@
 <div class="overlay" id="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="overlay-title">
   <div class="sheet">
     <header class="sheet-head">
-      <h2 id="overlay-title">List</h2>
+      <h2 id="overlay-title">Senarai</h2>
       <div class="head-btns">
         <button class="big-btn btn-alt btn-print" type="button" id="print-btn" aria-label="Download" title="Download" hidden>🖨️</button>
         <button class="big-btn btn-no" type="button" id="overlay-close" aria-label="Close">X</button>
       </div>
     </header>
     <div class="confirm print-confirm" id="print-confirm" hidden>
-      <span class="confirm-q" id="print-q">Download rank list as:</span>
+      <span class="confirm-q" id="print-q">Muat turun Carta sebagai:</span>
       <button class="big-btn btn-no" type="button" id="print-no">Cancel</button>
       <button class="big-btn btn-yes" type="button" id="print-yes">PNG</button>
       <button class="big-btn btn-submit" type="button" id="print-csv">CSV</button>
@@ -997,7 +1005,7 @@
         <tbody id="rows"></tbody>
       </table>
     </div>
-    <p class="empty" id="overlay-empty" hidden>Tiada rekod lagi. Masukkan ID, tetapkan markah dan tekan Submit.</p>
+    <p class="empty" id="overlay-empty" hidden>Tiada rekod lagi. Masukkan ID, tetapkan markah dan tekan Simpan.</p>
   </div>
 </div>
 
@@ -1240,7 +1248,7 @@
     sheetStatus.hidden = !msg;
   };
   const syncPrintBtn = () => { printBtn.hidden = false; };
-  const modeName = () => currentMode === 'rank' ? 'rank list' : 'list';
+  const modeName = () => currentMode === 'rank' ? 'Carta' : 'Senarai';
   const filePrefix = () => (currentMode === 'rank' ? 'rank' : 'list') + '-pemarkahan-hafazan-';
   if (window.claude && typeof window.claude.use === 'function') {
     window.claude.use('downloads').then(d => { downloads = d; syncPrintBtn(); }).catch(() => {});
@@ -1266,7 +1274,7 @@
     g.fillText('Pemarkahan Hafazan', padX, 44);
     g.fillStyle = muted; g.font = term(24);
     const now = new Date().toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
-    g.fillText('List · ' + records.length + ' peserta · ' + now, padX, 78);
+    g.fillText('Senarai · ' + records.length + ' peserta · ' + now, padX, 78);
 
     // column right edges (numbers right-aligned), # and Name / Saved left-aligned
     const R = W - padX - 8;
@@ -1333,7 +1341,7 @@
     g.fillText('Pemarkahan Hafazan', padX, 44);
     g.fillStyle = muted; g.font = term(24);
     const now = new Date().toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
-    g.fillText('Rank · ' + records.length + ' peserta · ' + now, padX, 78);
+    g.fillText('Carta · ' + records.length + ' peserta · ' + now, padX, 78);
 
     const xRank = padX + 8, xId = padX + 80, xTotal = W - padX - 8;
     g.fillStyle = '#e9ecf2'; g.fillRect(padX, headY, W - padX * 2, rowH);
@@ -1386,7 +1394,7 @@
 
   printBtn.addEventListener('click', () => {
     setSheetStatus('');
-    document.getElementById('print-q').textContent = 'Download ' + modeName() + ' as:';
+    document.getElementById('print-q').textContent = 'Muat turun ' + modeName() + ' sebagai:';
     printBtn.hidden = true;
     printConfirm.hidden = false;
     document.getElementById('print-no').focus();
@@ -1406,7 +1414,7 @@
     if (downloads) {
       try {
         await downloads.save({ filename, data: blob });
-        setSheetStatus('> ' + (currentMode === 'rank' ? 'Rank list' : 'List') + ' saved as ' + label + '.', 'ok');
+        setSheetStatus('> ' + modeName() + ' disimpan sebagai ' + label + '.', 'ok');
         printBtn.focus();
         return;
       } catch (e) {
@@ -1474,7 +1482,7 @@
     let records = mode === 'rank'
       ? rankedRecords()
       : loadRecords().map((r, i) => ({ ...r, order: i + 1 }));
-    overlayTitle.textContent = mode === 'rank' ? 'Rank' : 'List';
+    overlayTitle.textContent = mode === 'rank' ? 'Carta' : 'Senarai';
     colFirst.textContent = mode === 'rank' ? '🏆' : '#';
     if (mode === 'rank') colFirst.setAttribute('aria-label', 'Rank'); else colFirst.removeAttribute('aria-label');
     tableWrap.classList.toggle('rank-mode', mode === 'rank');
@@ -1710,9 +1718,9 @@
   // ---- Update check -------------------------------------------------------
   // When you publish a new version: raise APP_VERSION here AND the "version" in
   // version.json (both files sit side by side in the GitHub Pages repo).
-  const APP_VERSION = '1.0.3';
+  const APP_VERSION = '1.0.4';
   // Shown once on each device after it moves to this version. Leave '' for no note.
-  const WHATS_NEW = '17/10/2026: Nombor versi kini dipaparkan di bawah borang.';
+  const WHATS_NEW = '18/10/2026: Kemas kini penggunaan perkataan yang lebih sesuai.';
   const UPDATE_URL = 'version.json';          // relative to this page
   const CHECK_EVERY_MS = 24 * 60 * 60 * 1000; // daily
   const CHECK_KEY = 'pemarkahan-update-check';
@@ -1778,18 +1786,13 @@
     document.getElementById('updated-title').textContent = 'Borang telah dikemas kini ke versi ' + APP_VERSION + '.';
     document.getElementById('updated-notes').textContent = WHATS_NEW;
     bar.hidden = false;
-    let timer = null;
     const close = () => {
-      clearTimeout(timer);
       if (bar.hidden) return;
       bar.classList.add('leaving');
       setTimeout(() => { bar.hidden = true; bar.classList.remove('leaving'); }, 300);
     };
-    const start = () => { clearTimeout(timer); timer = setTimeout(close, 8000); };
+    // Stays until the user closes it.
     document.getElementById('updated-close').addEventListener('click', close);
-    bar.addEventListener('pointerenter', () => clearTimeout(timer));   // stay while being read
-    bar.addEventListener('pointerleave', start);
-    start();
   })();
 
   checkForUpdate(true);
