@@ -113,6 +113,50 @@
     font-size: 21px;
   }
   .update-bar[hidden] { display: none; }
+
+  /* "Updated to x.y.z" note: green, fixed along the top, closes itself */
+  .updated-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 21;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 14px;
+    padding-top: calc(10px + env(safe-area-inset-top, 0px));
+    padding-bottom: 10px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    background: var(--green);
+    color: #fff;
+    border-bottom: 4px solid var(--edge);
+    animation: drop-in .3s ease-out;
+  }
+  .updated-bar[hidden] { display: none; }
+  .updated-bar.leaving { animation: lift-out .3s ease-in forwards; }
+  .updated-text { display: grid; gap: 4px; max-width: 640px; min-width: 0; }
+  .updated-text strong { font-family: var(--font-pixel); font-size: 11px; font-weight: 400; line-height: 1.6; }
+  .updated-text span { font-size: 21px; line-height: 1.1; }
+  .updated-text span:empty { display: none; }
+  .updated-close {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    font-size: 16px;
+    color: var(--ink);
+    background: var(--panel);
+    border: 2px solid var(--edge);
+    border-radius: 0;
+    box-shadow: 3px 3px 0 var(--edge);
+    cursor: pointer;
+  }
+  .updated-close:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+  @keyframes drop-in { from { transform: translateY(-100%); } to { transform: none; } }
+  @keyframes lift-out { to { transform: translateY(-100%); } }
+  @media (prefers-reduced-motion: reduce) { .updated-bar, .updated-bar.leaving { animation: none; } }
   .update-btn {
     font-family: var(--font-pixel);
     font-size: 10px;
@@ -746,6 +790,14 @@
   .btn-yes { background: var(--green); }
   .btn-no { background: var(--red); }
 </style>
+
+<div class="updated-bar" id="updated-bar" role="status" hidden>
+  <div class="updated-text">
+    <strong id="updated-title">Borang telah dikemas kini.</strong>
+    <span id="updated-notes"></span>
+  </div>
+  <button type="button" class="updated-close" id="updated-close" aria-label="Tutup">✕</button>
+</div>
 
 <div class="update-bar" id="update-bar" role="status" hidden>
   <span class="update-msg" id="update-msg">Versi baru tersedia.</span>
@@ -1649,7 +1701,9 @@
   // ---- Update check -------------------------------------------------------
   // When you publish a new version: raise APP_VERSION here AND the "version" in
   // version.json (both files sit side by side in the GitHub Pages repo).
-  const APP_VERSION = '1.0.1';
+  const APP_VERSION = '1.0.2';
+  // Shown once on each device after it moves to this version. Leave '' for no note.
+  const WHATS_NEW = '17/10/2026: Antara muka web dikemas kini untuk lebih lancar.';
   const UPDATE_URL = 'version.json';          // relative to this page
   const CHECK_EVERY_MS = 24 * 60 * 60 * 1000; // daily
   const CHECK_KEY = 'pemarkahan-update-check';
@@ -1697,6 +1751,36 @@
 
   // Check on open, whenever the tab comes back into view, and hourly while open
   // (each only fetches if the last real check was over a day ago).
+  // ---- "Updated to x.y.z" note, once per device per version ----------------
+  // Kept out of APP_KEYS on purpose, so "!" (clear all) doesn't reset it.
+  const SEEN_KEY = 'pemarkahan-seen-version';
+  (function showUpdatedNote() {
+    let seen = null;
+    try {
+      seen = localStorage.getItem(SEEN_KEY);
+      // Versions before 1.0.2 didn't record this; earlier app data means it's a returning user.
+      if (!seen && APP_KEYS.some(k => localStorage.getItem(k) !== null)) seen = '1.0.1';
+      localStorage.setItem(SEEN_KEY, APP_VERSION);
+    } catch (e) { return; }
+    if (!seen || !newer(APP_VERSION, seen)) return;   // first visit, or nothing new
+    const bar = document.getElementById('updated-bar');
+    document.getElementById('updated-title').textContent = 'Borang telah dikemas kini ke versi ' + APP_VERSION + '.';
+    document.getElementById('updated-notes').textContent = WHATS_NEW;
+    bar.hidden = false;
+    let timer = null;
+    const close = () => {
+      clearTimeout(timer);
+      if (bar.hidden) return;
+      bar.classList.add('leaving');
+      setTimeout(() => { bar.hidden = true; bar.classList.remove('leaving'); }, 300);
+    };
+    const start = () => { clearTimeout(timer); timer = setTimeout(close, 8000); };
+    document.getElementById('updated-close').addEventListener('click', close);
+    bar.addEventListener('pointerenter', () => clearTimeout(timer));   // stay while being read
+    bar.addEventListener('pointerleave', start);
+    start();
+  })();
+
   checkForUpdate(true);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) checkForUpdate(false); });
   setInterval(() => checkForUpdate(false), 60 * 60 * 1000);
